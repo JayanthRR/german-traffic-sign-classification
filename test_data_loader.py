@@ -21,14 +21,6 @@ warnings.filterwarnings("ignore")
 # In[2]:
 
 
-labels_frame = pd.read_csv('GTSRB/Online-Test/GT-online_test.csv', sep=";")
-img_name = labels_frame.iloc[10]
-print(img_name)
-print(img_name['Filename'])
-# print(labels_frame.iloc[10,:])
-image = io.imread(os.path.join('GTSRB/Online-Test/Images/',img_name['Filename']))
-plt.imshow(image)
-plt.show()
 
 
 # In[3]:
@@ -70,7 +62,7 @@ class TrafficSignDataset(Dataset):
 
 
 test_transform = transforms.Compose([
-    transforms.Resize((256,256)),
+    transforms.Resize((224,224)),
     transforms.ToTensor(),
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 ])
@@ -89,32 +81,41 @@ def imshow(inp, title=None):
 
 
 # In[11]:
+def check():
 
+    labels_frame = pd.read_csv('GTSRB/Online-Test/GT-online_test.csv', sep=";")
+    img_name = labels_frame.iloc[10]
+    print(img_name)
+    print(img_name['Filename'])
+    # print(labels_frame.iloc[10,:])
+    image = io.imread(os.path.join('GTSRB/Online-Test/Images/',img_name['Filename']))
+    plt.imshow(image)
+    plt.show()
 
-root_dir = 'GTSRB/Online-Test/'
-traffic_dataset = TrafficSignDataset(csv_file=os.path.join(root_dir, 'GT-online_test.csv'), 
-                                     root_dir=os.path.join(root_dir, 'Images/'),
-                                     transform=test_transform)
-# fig = plt.figure()
+    root_dir = 'GTSRB/Online-Test/'
+    traffic_dataset = TrafficSignDataset(csv_file=os.path.join(root_dir, 'GT-online_test.csv'), 
+                                         root_dir=os.path.join(root_dir, 'Images/'),
+                                         transform=test_transform)
+    # fig = plt.figure()
 
-# for i in range(len(traffic_dataset)):
-#     sample = traffic_dataset[i]
-    
-#     print(i, sample['image'].shape, sample['class'])
-    
-#     ax = plt.subplot(1, 2, i+1)
-#     plt.tight_layout()
-#     plt.imshow(sample['image'])
-#     if i==1:
-#         plt.show()
-#         break
+    # for i in range(len(traffic_dataset)):
+    #     sample = traffic_dataset[i]
+        
+    #     print(i, sample['image'].shape, sample['class'])
+        
+    #     ax = plt.subplot(1, 2, i+1)
+    #     plt.tight_layout()
+    #     plt.imshow(sample['image'])
+    #     if i==1:
+    #         plt.show()
+    #         break
 
-train_loader = torch.utils.data.DataLoader(traffic_dataset, batch_size=8)                           
-data_iter = iter(train_loader)
-sample = data_iter.next()
-images, labels = sample['image'], sample['class']
-# Make a grid from batch
-out = torchvision.utils.make_grid(images)
+    test_loader = torch.utils.data.DataLoader(traffic_dataset, batch_size=8)                           
+    data_iter = iter(test_loader)
+    sample = data_iter.next()
+    images, labels = sample['image'], sample['class']
+    # Make a grid from batch
+    out = torchvision.utils.make_grid(images)
 
-imshow(out, title=[x for x in labels])
+    imshow(out, title=[x for x in labels])
 
