@@ -1,9 +1,4 @@
 
-# coding: utf-8
-
-# In[2]:
-
-
 from __future__ import print_function, division
 
 import torch
@@ -20,11 +15,6 @@ import os
 import copy
 import numpy as np
 from torch.utils.data.sampler import SubsetRandomSampler
-
-plt.ion()   # interactive mode
-
-
-# In[20]:
 
 
 def get_train_valid_loader(data_dir,
@@ -73,7 +63,7 @@ def get_train_valid_loader(data_dir,
 
     # define transforms
     valid_transform = transforms.Compose([
-        transforms.Resize((256,256)),
+        transforms.Resize((224,224)),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
@@ -85,7 +75,7 @@ def get_train_valid_loader(data_dir,
         ])
     else:
         train_transform = transforms.Compose([
-        transforms.Resize((256,256)),
+        transforms.Resize((224,224)),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
@@ -139,34 +129,6 @@ def imshow(inp, title=None):
         plt.title(title)
     plt.pause(0.001)  # pause a bit so that plots are updated
 
-
-
-# In[21]:
-
-
-# Get a batch of training data
-data_dir = 'GTSRB/Final_Training/Images/'
-
-train_loader, valid_loader, train_size, valid_size, classes = get_train_valid_loader(data_dir, 
-                                                    batch_size=8,
-                                                    augment=True,
-                                                    random_seed=1,
-                                                    valid_size=0.1,
-                                                    shuffle=True,
-                                                    show_sample=False,
-                                                    num_workers=1,
-                                                    pin_memory=True)
-
-data_iter = iter(train_loader)
-images, labels = data_iter.next()
-print(labels)
-# Make a grid from batch
-out = torchvision.utils.make_grid(images)
-
-imshow(out, title=[classes[x] for x in labels])
-
-
-# In[22]:
 
 
 def train_model(model, train_loader, valid_loader, train_size, valid_size,
@@ -253,29 +215,44 @@ def train_model(model, train_loader, valid_loader, train_size, valid_size,
     return model
 
 
-# In[24]:
+if __name__=="__main__":
 
 
-use_gpu = torch.cuda.is_available()
+    train_data_dir = '/home/cc/Datasets/traffic_sign/GTSRB/Final_Training/Images/'
 
-model_ft = models.resnet18(pretrained=True)
-num_ftrs = model_ft.fc.in_features
-model_ft.fc = nn.Linear(num_ftrs, len(classes))
-if use_gpu:
-    model_ft = model_ft.cuda()
+    train_loader, valid_loader, train_size, valid_size, classes = get_train_valid_loader(train_data_dir, 
+                                                        batch_size=64,
+                                                        augment=True,
+                                                        random_seed=1,
+                                                        valid_size=0.1,
+                                                        shuffle=True,
+                                                        show_sample=False,
+                                                        num_workers=4,
+                                                        pin_memory=True)
 
-criterion = nn.CrossEntropyLoss()
+    data_iter = iter(train_loader)
+    images, labels = data_iter.next()
+    print(labels)
+    print(images[0].shape)
 
-# Observe that all parameters are being optimized
-optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
+    use_gpu = torch.cuda.is_available()
 
-# Decay LR by a factor of 0.1 every 7 epochs
-exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
+    model_ft = models.resnet18(pretrained=True)
+    num_ftrs = model_ft.fc.in_features
+    model_ft.fc = nn.Linear(num_ftrs, len(classes))
+    if use_gpu:
+        model_ft = model_ft.cuda()
 
+    criterion = nn.CrossEntropyLoss()
 
-# In[ ]:
+    # Observe that all parameters are being optimized
+    optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
 
+    # Decay LR by a factor of 0.1 every 7 epochs
+    exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
 
-model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,
-                       num_epochs=25)
+    model_ft = train_model(model_ft, train_loader, valid_loader, train_size,
+            valid_size, criterion, optimizer_ft, exp_lr_scheduler, num_epochs=25)
+
+    print("completed")
 
