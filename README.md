@@ -28,7 +28,7 @@ The directory structure is assumed to look as
 
 The folder names `00000/`, `00001/` correspond to the class labels, and there are 43 such labels.
 
-### Using `torchvision.models`
+### Fine tuning `torchvision.models`
 - `Resnet`
    takes `224x224` images as input, so we need to apply an appropriate transform (`torchvision.transforms.Resize, torchvision.transforms.RandomResizedCrop`) while calling the data loader. To tune the model for a custom number of classes, we modify the final fully connected layer with the number of classes (here 43).
   ```
