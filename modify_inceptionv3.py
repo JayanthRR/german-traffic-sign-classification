@@ -1,17 +1,8 @@
-
-# coding: utf-8
-
-# In[1]:
-
-
 import torch
 import torchvision
 from torch import nn
+import torch.nn.functional as F
 from torch.autograd import Variable
-
-
-
-# In[9]:
 
 
 class InceptionAux(nn.Module):
@@ -37,7 +28,6 @@ class InceptionAux(nn.Module):
         x = self.fc(x)
         # 1000
         return x
-
     
 
 class BasicConv2d(nn.Module):
@@ -51,22 +41,6 @@ class BasicConv2d(nn.Module):
         x = self.conv(x)
         x = self.bn(x)
         return F.relu(x, inplace=True)
-    
-
-
-# In[3]:
-
-
-# inception = torchvision.models.inception_v3(pretrained=False)
-
-
-# In[10]:
-
-
-# inception.AuxLogits = InceptionAux(in_channels=768, num_classes=43)
-
-
-# In[11]:
 
 
 def get_pretrained_inception(num_classes, pretrained=True):
