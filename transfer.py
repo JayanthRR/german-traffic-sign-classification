@@ -32,11 +32,13 @@ parser.add_argument('--threads', type=int, default=4, help='number of threads fo
 parser.add_argument('--seed', type=int, default=0, help='random seed to use. Default=0')
 parser.add_argument('--log-interval', type=int, default=100, metavar='N', help='batches for logging status')
 parser.add_argument('--momentum', type=float, default=0.9, metavar='M', help='SGD momentum. Default=0.9')
-parser.add_argument('--trained-model', type=str, default='checkpoint1.pt', help='specify a trained model')
-parser.add_argument('--eval', action='store_false', help='specify if the model has to be tested')
-parser.add_argument('--train', action='store_true', help='specify if the model has to be tested')
-parser.add_argument('--feature', action='store_true', help='use resnet as a feature extractor?')
-parser.add_argument('--no-feature', action='store_false', help='train resnet instead of feature extractor')
+parser.add_argument('--trained-model', type=str, default='resnet', help='specify a trained model')
+parser.add_argument('--eval', action='store_true', help='specify if the model has to be tested')
+parser.add_argument('--no-eval', action='store_false', help='specify if the model has to be tested')
+parser.add_argument('--train', action='store_true', help='specify if the model has to be trained')
+parser.add_argument('--no-train', action='store_false', help='speficy if the model has to be trained')
+parser.add_argument('--feature-extractor', action='store_false', help='use resnet as a feature extractor?')
+parser.add_argument('--no-feature-extractor', action='store_true', help='train resnet instead of feature extractor')
 parser.add_argument('--image-net-model', type=str, default='resnet', help='which image net pretrained model do you want to use?')
 
 opt = parser.parse_args()
@@ -310,9 +312,9 @@ if __name__=="__main__":
 
 
     result_logs = dict()
-    pretrained = ['squeeze', 'resnet18', 'inception', 'vgg', 'resnet34']
-    #pretrained = []
-    #pretrained.append(opt.image_net_model)
+    # pretrained = ['squeeze', 'resnet18', 'inception', 'vgg', 'resnet34']
+    pretrained = []
+    pretrained.append(opt.image_net_model)
     use_gpu = torch.cuda.is_available()
     auxloss = False
 
