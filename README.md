@@ -14,13 +14,6 @@ The directory structure is assumed to look as
   - Final_Training/
     - Images/
       - 00000/
-        - 00000.pm
-        - 00001.pm
-
-          ...
-
-        - GT-00000.csv
-
       - 00001/
 
         ...
