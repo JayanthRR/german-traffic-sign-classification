@@ -32,13 +32,16 @@ parser.add_argument('--seed', type=int, default=0, help='random seed to use. Def
 parser.add_argument('--log-interval', type=int, default=100, metavar='N', help='batches for logging status')
 parser.add_argument('--momentum', type=float, default=0.9, metavar='M', help='SGD momentum. Default=0.9')
 parser.add_argument('--trained-model', type=str, default='resnet', help='specify a trained model')
-parser.add_argument('--eval', action='store_true', help='specify if the model has to be tested')
-parser.add_argument('--no-eval', action='store_false', help='specify if the model has to be tested')
+parser.add_argument('--evaluate', action='store_true', help='specify if the model has to be tested')
+parser.add_argument('--no-evaluate', action='store_false', help='specify if the model has to be tested')
 parser.add_argument('--train', action='store_true', help='specify if the model has to be trained')
 parser.add_argument('--no-train', action='store_false', help='speficy if the model has to be trained')
-parser.add_argument('--feature-extractor', action='store_false', help='use resnet as a feature extractor?')
-parser.add_argument('--no-feature-extractor', action='store_true', help='train resnet instead of feature extractor')
+parser.add_argument('--feature-extractor', action='store_true', help='use pretrained model as a feature extractor?')
+# parser.add_argument('--no-feature-extractor', action='store_true', help='train pretrained instead of feature extractor')
 parser.add_argument('--image-net-model', type=str, default='resnet', help='which image net pretrained model do you want to use?')
+parser.set_defaults(evaluate=False)
+parser.set_defaults(train=True)
+parser.set_defaults(feature_extractor=False)
 
 opt = parser.parse_args()
 
@@ -47,7 +50,7 @@ print(opt)
 torch.manual_seed(opt.seed)
 
 
-def test_model(model, test_loader, criterion, auxloss, valid_size=None):
+def test_model(model, test_loader, criterion, auxloss=False, valid_size=None):
 
     model.train(False)  # Set model to evaluate mode
 
@@ -91,7 +94,7 @@ def test_model(model, test_loader, criterion, auxloss, valid_size=None):
             running_loss += loss.data[0] * inputs.size(0)
             running_corrects += torch.sum(preds == labels.data)
 
-    print(' Loss: {:.6f}, Accuracy: {:.6f}'.format(running_loss/len(dataloader.dataset), 100*running_corrects/len(dataloader.dataset)))
+    # print(' Loss: {:.6f}, Accuracy: {:.6f}'.format(running_loss/len(dataloader.dataset), 100*running_corrects/len(dataloader.dataset)))
 
     if valid_size is not None:
         return running_loss/valid_size, 100*running_corrects/valid_size
@@ -166,7 +169,7 @@ def train_model(model, train_loader, valid_loader, train_size, valid_size,
                             loss.data[0]))
 
                 epoch_loss = running_loss / train_size
-                epoch_acc = running_corrects / train_size
+                epoch_acc = 100* running_corrects / train_size
 
             else:
 
@@ -178,7 +181,7 @@ def train_model(model, train_loader, valid_loader, train_size, valid_size,
                     best_model_wts = copy.deepcopy(model.state_dict())
                 
             print('{} Loss: {:.6f} Acc: {:.4f}\n'.format(
-                phase, epoch_loss, epoch_acc*100))
+                phase, epoch_loss, epoch_acc))
 
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(
@@ -196,12 +199,17 @@ if __name__=="__main__":
 
 
     result_logs = dict()
-    # pretrained = ['squeeze', 'resnet18', 'inception', 'vgg', 'resnet34']
-    pretrained = []
-    pretrained.append(opt.image_net_model)
+    if opt.image_net_model == 'all':
+        pretrained = ['squeeze', 'resnet18', 'inception', 'vgg', 'resnet34']
+    elif opt.image_net_model in ['squeeze', 'resnet18', 'inception', 'vgg', 'resnet34']:
+        pretrained = []
+        pretrained.append(opt.image_net_model)
+    else:
+        raise KeyError
+
     use_gpu = torch.cuda.is_available()
     auxloss = False
-
+    log_dir = '/home/cc/trained/traffic_sign/'
     train_data_dir = '/home/cc/Datasets/traffic_sign/GTSRB/Final_Training/Images/'
     test_data_dir = '/home/cc/Datasets/traffic_sign/GTSRB/Final_Test/Images/'
 
@@ -265,7 +273,17 @@ if __name__=="__main__":
 
                 # Observe that only parameters of final layer are being optimized as
                 # opoosed to before.
-                optimizer = optim.SGD(model.fc.parameters(), lr=0.001, momentum=opt.momentum)
+                if model_name in ['resnet18','resnet34', 'inception']:
+
+                    optimizer = optim.SGD(model.fc.parameters(), lr=0.001, momentum=opt.momentum)
+                elif model_name in ['vgg','squeeze']:
+
+                    if model_name == 'vgg':
+                        optimizer = optim.SGD(model.classifier._modules['6'].parameters(), lr=0.001, momentum=opt.momentum)
+                    else:
+                        optimizer = optim.SGD(model.classifier._modules['1'].parameters(), lr=0.001, momentum=opt.momentum)
+                    # optimizer = optim.SGD(model.classifier.parameters(), lr=0.001, momentum=opt.momentum)
+
 
                 # Decay LR by a factor of 0.1 every 7 epochs
                 exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
@@ -289,7 +307,7 @@ if __name__=="__main__":
                                                          valid_size, criterion, optimizer, exp_lr_scheduler,
                                                          num_epochs=opt.n_epochs, auxloss=auxloss)
             
-            torch.save(model, model_name + '_.pt')
+            torch.save(model, os.path.join(log_dir, model_name + '_.pt'))
 
             print("completed_training")
 
@@ -298,13 +316,13 @@ if __name__=="__main__":
                                                transform=test_transform)
             test_loader = torch.utils.data.DataLoader(test_data_set, batch_size = opt.val_batch_size)
 
-            result = test_model(model, test_loader, opt.val_batch_size, criterion)
+            result = test_model(model, test_loader, criterion, auxloss)
             result_logs[model_name]['test_accuracy'] = result[1]
             result_logs[model_name]['test_loss'] = result[0]
 
             print(result_logs[model_name])
     
-    save(result_logs, 'logs_all.pkl')
+    save(result_logs, os.path.join(log_dir, opt.image_net_model + '_logs_.pkl'))
     
     print("completed_testing")
 

@@ -122,4 +122,4 @@ def load_model(pretrain, feature_extractor=False):
         val_transform = resnet_test_transform
         test_transform = resnet_test_transform
 
-    return train_transform, val_transform, test_transform, auxloss
+    return model, train_transform, val_transform, test_transform, auxloss
