@@ -45,13 +45,16 @@ class BasicConv2d(nn.Module):
         return F.relu(x, inplace=True)
 
 
-def get_pretrained_inception(num_classes, pretrained=True):
+def get_pretrained_inception(num_classes, pretrained=True, feature_extractor=False):
     inception = torchvision.models.inception_v3(pretrained=pretrained)
-    
+    if feature_extractor:
+        for param in inception.parameters():
+            param.requires_grad = False
+
     fc_in_features = inception.fc.in_features
     inception.fc = nn.Linear(in_features=fc_in_features, out_features=num_classes)
     inception.AuxLogits = InceptionAux(in_channels=768, num_classes=num_classes)
-    
+
     return inception
 
 
@@ -59,10 +62,7 @@ def load_model(pretrain, feature_extractor=False):
     auxloss = False
     if pretrain == 'inception':
 
-        model = get_pretrained_inception(num_classes=43, pretrained=True)
-        if feature_extractor:
-            for param in model.parameters():
-                param.requires_grad = False
+        model = get_pretrained_inception(num_classes=43, pretrained=True, feature_extractor=feature_extractor)
 
         auxloss = True
         train_transform = inception_train_transform
@@ -92,9 +92,9 @@ def load_model(pretrain, feature_extractor=False):
         num_ftrs = model.classifier._modules['6'].in_features
         model.classifier._modules['6'] = nn.Linear(num_ftrs, 43)
 
-        train_transform = resnet_train_transform
-        val_transform = resnet_test_transform
-        test_transform = resnet_test_transform
+        train_transform = vgg_train_transform
+        val_transform = vgg_test_transform
+        test_transform = vgg_test_transform
 
     elif pretrain == 'resnet34':
         model = models.resnet34(pretrained=True)
@@ -122,4 +122,30 @@ def load_model(pretrain, feature_extractor=False):
         val_transform = resnet_test_transform
         test_transform = resnet_test_transform
 
-    return train_transform, val_transform, test_transform, auxloss
+    return model, train_transform, val_transform, test_transform, auxloss
+
+
+def load_transform(model_name):
+
+    if model_name == 'inception':
+
+        test_transform = inception_test_transform
+
+    elif model_name == 'vgg':
+
+        test_transform = vgg_test_transform
+
+    elif model_name == 'resnet34':
+
+        test_transform = resnet_test_transform
+
+    elif model_name == 'squeeze':
+
+        test_transform = squeeze_test_transform
+
+    else:
+
+        test_transform = resnet_test_transform
+
+
+    return test_transform
