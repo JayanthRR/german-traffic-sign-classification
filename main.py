@@ -75,11 +75,12 @@ def test_model(model, test_loader, criterion, auxloss=False, valid_size=None):
 
         # forward
         outputs = model(inputs)
+        print(type(outputs), len(outputs))
 
         if auxloss:
             softmax_out = outputs[0]
             aux_out = outputs[1]
-
+            print(softmax_out.shape, aux_out.shape)
             _, soft_preds = torch.max(softmax_out.data, 1)
             _, aux_preds = torch.max(aux_out.data, 1)
             soft_loss = criterion(softmax_out, labels)
