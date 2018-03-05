@@ -18,7 +18,7 @@ from torch.utils.data.sampler import SubsetRandomSampler
 from tqdm import tqdm
 from data_loader import TrafficSignDataset, get_train_valid_loader
 from transforms_helper import *
-from pretrained_models import load_model
+from pretrained_models import load_model, load_transform
 from save_object import save
 
 
@@ -214,34 +214,30 @@ if __name__=="__main__":
     train_data_dir = '/home/cc/Datasets/traffic_sign/GTSRB/Final_Training/Images/'
     test_data_dir = '/home/cc/Datasets/traffic_sign/GTSRB/Final_Test/Images/'
 
-    # if opt.eval:
-    #
-    #     test_data_set = TrafficSignDataset(csv_file= os.path.join(test_data_dir,'GT-final_test.csv'),
-    #                                        root_dir= test_data_dir,
-    #                                        transform=test_transform)
-    #     test_loader = torch.utils.data.DataLoader(test_data_set, batch_size = opt.val_batch_size)
-    #
-    #     if not opt.trained_model == 'all':
-    #         model = torch.load(opt.trained_model + '_.pkl')
-    #         result_logs[opt.trained_model] = dict()
-    #     else:
-    #         for model_name in pretrained:
-    #             result_logs[model_name] = dict()
-    #
-    #             print("pretrain: {}".format(model_name))
-    #             model = torch.load(model_name + '_.pkl')
-    #
-    #             if use_gpu:
-    #                 model = model.cuda()
-    #
-    #             criterion = nn.CrossEntropyLoss()
-    #
-    #     test_data_set = TrafficSignDataset(csv_file= os.path.join(test_data_dir,'GT-final_test.csv'),
-    #                                        root_dir= test_data_dir,
-    #                                        transform=test_transform)
-    #     test_loader = torch.utils.data.DataLoader(test_data_set, batch_size = opt.val_batch_size)
-    #
-    #     result = test_model(model, test_loader, criterion, auxloss)
+    if opt.evaluate:
+
+        if opt.trained_model in ['squeeze', 'resnet18', 'inception', 'vgg', 'resnet34']:
+
+            print("using: {}".format(opt.trained_model))
+
+            model = torch.load(os.path.join(log_dir, opt.trained_model + '._pkl'))
+            result_logs[opt.trained_model] = dict()
+            _, _, _, test_transform, auxloss = load_transform(opt.trained_model)
+
+            test_data_set = TrafficSignDataset(csv_file= os.path.join(test_data_dir,'GT-final_test.csv'),
+                                               root_dir= test_data_dir,
+                                               transform=test_transform)
+            test_loader = torch.utils.data.DataLoader(test_data_set, batch_size = opt.val_batch_size)
+
+            if use_gpu:
+                model = model.cuda()
+
+            criterion = nn.CrossEntropyLoss()
+
+            result = test_model(model, test_loader, criterion, auxloss)
+            save(result_logs, os.path.join(log_dir + '_eval_logs.pkl'))
+        else:
+            print('model not trained yet')
 
     if opt.train:
         for model_name in pretrained:
@@ -323,7 +319,7 @@ if __name__=="__main__":
 
             print(result_logs[model_name])
     
-    save(result_logs, os.path.join(log_dir, opt.image_net_model + '_logs_.pkl'))
-    
+        save(result_logs, os.path.join(log_dir + '_train_logs.pkl'))
+
     print("completed_testing")
 
