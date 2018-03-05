@@ -20,6 +20,8 @@ from data_loader import TrafficSignDataset, get_train_valid_loader
 from transforms_helper import *
 from pretrained_models import load_model, load_transform
 from save_object import save
+import warnings
+warnings.filterwarnings("ignore")
 
 
 parser = argparse.ArgumentParser(description='Pytorch Traffic Sign Classification Example')

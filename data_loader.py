@@ -13,8 +13,6 @@ from torch.utils.data.sampler import SubsetRandomSampler
 import os
 import torch
 
-warnings.filterwarnings("ignore")
-
 
 class TrafficSignDataset(Dataset):
     """Traffic Sign Dataset"""
