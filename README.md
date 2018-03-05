@@ -6,7 +6,7 @@ This project uses the [German Traffic Sign Recognition Benchmarks Dataset(GTSRB)
 ### Data Loader and Directory Structure
 
 I included a data loader for the GTSRB data set with the help of Pytorch's [data loading tutorial](http://pytorch.org/tutorials/beginner/data_loading_tutorial.html).
-I wrote two different data loaders. `get_train_valid_loader` for the training and validation sets (courtesy [kevinzakka](https://gist.github.com/kevinzakka/d33bf8d6c7f06a9d8c76d97a7879f5cb)) and `TrafficSignDataset` for the test data set. `get_train_valid_loader` uses `torchvision.datasets.ImageFolder` that leverages the following directory structure) and makes our life extremely easy to load data. The test data loader requires a `.csv` file with annotations, and is explained in the ipython notebook [here](http://localhost:8888/notebooks/test_data_loader.ipynb)
+I wrote two different data loaders. `get_train_valid_loader` for the training and validation sets (courtesy [kevinzakka](https://gist.github.com/kevinzakka/d33bf8d6c7f06a9d8c76d97a7879f5cb)) and `TrafficSignDataset` for the test data set. `get_train_valid_loader` uses `torchvision.datasets.ImageFolder` that leverages the following directory structure) and makes our life extremely easy to load data. The test data loader requires a `.csv` file with annotations, and is explained in the ipython notebook [here]()
 
 
 The directory structure is assumed to look as
