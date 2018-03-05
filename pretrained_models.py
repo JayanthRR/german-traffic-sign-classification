@@ -68,6 +68,20 @@ def load_model(pretrain, feature_extractor=False):
         train_transform = inception_train_transform
         val_transform = inception_test_transform
         test_transform = inception_test_transform
+    
+    elif pretrain == 'dense':
+
+        model = models.densenet121(pretrained=True)
+        if feature_extractor:
+            for param in model.parameters():
+                param.requires_grad = False
+
+        num_ftrs = model.classifier.in_features
+        model.classifier = nn.Linear(num_ftrs, 43)
+        train_transform = resnet_train_transform
+        val_transform = resnet_test_transform
+        test_transform = resnet_test_transform
+
 
     elif pretrain == 'squeeze':
         model = models.squeezenet1_1(pretrained=True)
@@ -127,9 +141,11 @@ def load_model(pretrain, feature_extractor=False):
 
 def load_transform(model_name):
 
+    auxloss=False
     if model_name == 'inception':
 
         test_transform = inception_test_transform
+        auxloss=True
 
     elif model_name == 'vgg':
 
@@ -148,4 +164,4 @@ def load_transform(model_name):
         test_transform = resnet_test_transform
 
 
-    return test_transform
+    return test_transform, auxloss
